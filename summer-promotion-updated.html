@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夏季促销活动 - 官方网站</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 50px 0;
+        }
+        .header h1 {
+            font-size: 3em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .promotion-content {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 40px;
+            margin: 30px 0;
+            backdrop-filter: blur(10px);
+        }
+        .discount-badge {
+            background: #ff4757;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.5em;
+            font-weight: bold;
+            display: inline-block;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .cta-button {
+            background: #2ed573;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 20px 10px;
+        }
+        .cta-button:hover {
+            background: #26d0ce;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        .feature-card {
+            background: rgba(255,255,255,0.15);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+        .countdown {
+            text-align: center;
+            font-size: 2em;
+            margin: 30px 0;
+            color: #ffa502;
+        }
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            .promotion-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌞 夏季超级促销 🌞</h1>
+            <p>限时优惠，错过再等一年！</p>
+        </div>
+        
+        <div class="promotion-content">
+            <div class="discount-badge">
+                🔥 全场最高7折优惠 🔥
+            </div>
+            
+            <h2>活动详情</h2>
+            <ul>
+                <li>✨ 精选商品低至3折</li>
+                <li>🎁 满299元免费送货</li>
+                <li>💎 VIP会员额外9折</li>
+                <li>🏆 新用户注册立享100元优惠券</li>
+                <li>📱 手机端专享额外优惠</li>
+            </ul>
+            
+            <div class="countdown">
+                ⏰ 活动倒计时：还剩 7 天
+            </div>
+            
+            <div class="features">
+                <div class="feature-card">
+                    <h3>🛍️ 热销产品</h3>
+                    <p>夏季必备单品，品质保证，价格实惠</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🚚 快速配送</h3>
+                    <p>24小时内发货，全国包邮服务</p>
+                </div>
+                <div class="feature-card">
+                    <h3>💯 品质保障</h3>
+                    <p>正品保证，7天无理由退换</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="#" class="cta-button">立即抢购</a>
+                <a href="#" class="cta-button">查看更多</a>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 50px; opacity: 0.8;">
+            <p>活动最终解释权归本公司所有</p>
+            <p>客服热线：400-123-4567</p>
+        </div>
+    </div>
+    
+    <script>
+        // 简单的倒计时功能
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const endDate = new Date(now + 7 * 24 * 60 * 60 * 1000).getTime();
+            const distance = endDate - now;
+            
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            
+            document.querySelector('.countdown').innerHTML = 
+                `⏰ 活动倒计时：${days}天 ${hours}小时 ${minutes}分钟`;
+        }
+        
+        setInterval(updateCountdown, 60000);
+        updateCountdown();
+    </script>
+</body>
+</html>
