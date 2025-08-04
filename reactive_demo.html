@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>响应式编程示例 - 高并发视频处理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        /* 拖拽上传区域 */
+        .drop-zone {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 60px 20px;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            border-color: #764ba2;
+            background: #f0f2ff;
+            transform: translateY(-2px);
+        }
+
+        .drop-zone i {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .drop-zone h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .drop-zone p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* 统计信息 */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 进度条 */
+        .progress-item {
+            background: #f8f9ff;
+            border: 1px solid #e0e6ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .progress-label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            background: #e0e6ff;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* 结果展示 */
+        .result-item {
+            background: #f8f9ff;
+            border: 1px solid #e0e6ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .result-item h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .result-item p {
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .thumbnails {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .thumbnails img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 2px solid #e0e6ff;
+        }
+
+        /* 错误信息 */
+        .error-container {
+            display: none;
+            background: #ffe6e6;
+            border: 1px solid #ffcccc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .error-item {
+            color: #cc0000;
+            margin-bottom: 10px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 成功状态 */
+        .success {
+            color: #28a745;
+        }
+
+        .warning {
+            color: #ffc107;
+        }
+
+        .danger {
+            color: #dc3545;
+        }
+
+        /* 工具提示 */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+    <!-- 引入Font Awesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-video"></i> 响应式编程示例</h1>
+            <p>高并发视频数据处理演示 - 为初级工程师提供的学习案例</p>
+        </div>
+
+        <div class="content">
+            <!-- 文件上传区域 -->
+            <div class="section">
+                <h2><i class="fas fa-upload"></i> 视频上传</h2>
+                <div id="drop-zone" class="drop-zone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>拖拽视频文件到这里</h3>
+                    <p>或者点击选择文件</p>
+                    <button class="upload-btn" onclick="document.getElementById('file-input').click()">
+                        <i class="fas fa-folder-open"></i> 选择文件
+                    </button>
+                </div>
+                <input type="file" id="file-input" class="file-input" multiple accept="video/*">
+            </div>
+
+            <!-- 实时统计 -->
+            <div class="section">
+                <h2><i class="fas fa-chart-bar"></i> 实时统计</h2>
+                <div id="stats" class="stats">
+                    <div class="stat-item">总计: 0</div>
+                    <div class="stat-item">等待中: 0</div>
+                    <div class="stat-item">上传中: 0</div>
+                    <div class="stat-item">处理中: 0</div>
+                    <div class="stat-item">已完成: 0</div>
+                    <div class="stat-item">错误: 0</div>
+                </div>
+            </div>
+
+            <!-- 上传进度 -->
+            <div class="section">
+                <h2><i class="fas fa-tasks"></i> 上传进度</h2>
+                <div id="progress-container">
+                    <p style="color: #666; text-align: center; padding: 20px;">
+                        <i class="fas fa-info-circle"></i> 选择视频文件开始上传
+                    </p>
+                </div>
+            </div>
+
+            <!-- 错误信息 -->
+            <div id="error-container" class="error-container">
+                <!-- 错误信息将在这里显示 -->
+            </div>
+
+            <!-- 处理结果 -->
+            <div class="section">
+                <h2><i class="fas fa-check-circle"></i> 处理结果</h2>
+                <div id="results-container">
+                    <p style="color: #666; text-align: center; padding: 20px;">
+                        <i class="fas fa-hourglass-half"></i> 等待视频处理完成
+                    </p>
+                </div>
+            </div>
+
+            <!-- 技术说明 -->
+            <div class="section">
+                <h2><i class="fas fa-lightbulb"></i> 响应式编程的优势</h2>
+                <div style="background: #f8f9ff; padding: 20px; border-radius: 10px; border-left: 5px solid #667eea;">
+                    <h3 style="color: #333; margin-bottom: 15px;">🚀 性能优势</h3>
+                    <ul style="color: #666; line-height: 1.8;">
+                        <li><strong>并发处理：</strong>同时处理多个视频上传和处理任务</li>
+                        <li><strong>异步I/O：</strong>不阻塞用户界面，提供流畅的用户体验</li>
+                        <li><strong>背压控制：</strong>智能控制并发数量，避免系统过载</li>
+                        <li><strong>流式处理：</strong>数据流动式处理，内存使用效率高</li>
+                        <li><strong>错误隔离：</strong>单个任务的错误不影响其他任务</li>
+                        <li><strong>实时反馈：</strong>实时更新进度和状态信息</li>
+                    </ul>
+
+                    <h3 style="color: #333; margin: 20px 0 15px 0;">🔧 技术特点</h3>
+                    <ul style="color: #666; line-height: 1.8;">
+                        <li><strong>声明式编程：</strong>描述"做什么"而不是"怎么做"</li>
+                        <li><strong>函数式操作符：</strong>map, filter, merge, switch等</li>
+                        <li><strong>组合性：</strong>操作符可以灵活组合形成复杂的数据流</li>
+                        <li><strong>时间处理：</strong>内置防抖、节流、延迟等时间操作</li>
+                        <li><strong>内存管理：</strong>自动管理订阅和取消订阅</li>
+                    </ul>
+
+                    <h3 style="color: #333; margin: 20px 0 15px 0;">📚 学习建议</h3>
+                    <ul style="color: #666; line-height: 1.8;">
+                        <li>从简单的Observable开始学习</li>
+                        <li>理解操作符的作用和组合方式</li>
+                        <li>练习错误处理和资源清理</li>
+                        <li>在实际项目中逐步应用</li>
+                        <li>关注性能监控和优化</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模拟RxJS功能的简化版本（实际项目中应该使用真正的RxJS） -->
+    <script>
+        // 简化的响应式编程演示
+        class SimpleObservable {
+            constructor(subscribeFn) {
+                this.subscribeFn = subscribeFn;
+            }
+
+            subscribe(observer) {
+                return this.subscribeFn(observer);
+            }
+
+            map(mapFn) {
+                return new SimpleObservable(observer => {
+                    return this.subscribe({
+                        next: value => observer.next(mapFn(value)),
+                        error: err => observer.error(err),
+                        complete: () => observer.complete()
+                    });
+                });
+            }
+
+            filter(predicate) {
+                return new SimpleObservable(observer => {
+                    return this.subscribe({
+                        next: value => {
+                            if (predicate(value)) {
+                                observer.next(value);
+                            }
+                        },
+                        error: err => observer.error(err),
+                        complete: () => observer.complete()
+                    });
+                });
+            }
+        }
+
+        // 模拟视频处理服务
+        class DemoVideoService {
+            constructor() {
+                this.videos = [];
+                this.uploadProgress = new Map();
+                this.processingResults = [];
+                this.errors = [];
+                this.maxConcurrent = 3;
+                this.currentUploads = 0;
+            }
+
+            addVideos(files) {
+                Array.from(files).forEach(file => {
+                    const video = {
+                        id: this.generateId(),
+                        name: file.name,
+                        size: file.size,
+                        status: 'pending'
+                    };
+                    this.videos.push(video);
+                    this.startUpload(video);
+                });
+                this.updateStats();
+            }
+
+            startUpload(video) {
+                if (this.currentUploads >= this.maxConcurrent) {
+                    setTimeout(() => this.startUpload(video), 1000);
+                    return;
+                }
+
+                this.currentUploads++;
+                video.status = 'uploading';
+                this.updateStats();
+
+                // 模拟上传进度
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        this.currentUploads--;
+                        video.status = 'processing';
+                        this.uploadProgress.delete(video.id);
+                        this.startProcessing(video);
+                    }
+                    
+                    this.uploadProgress.set(video.id, {
+                        videoId: video.id,
+                        progress: Math.round(progress),
+                        speed: Math.random() * 5 + 1, // 1-6 MB/s
+                        remainingTime: (100 - progress) / 10 // 估算剩余时间
+                    });
+                    
+                    this.updateProgress();
+                    this.updateStats();
+                }, 200);
+            }
+
+            startProcessing(video) {
+                // 模拟处理时间
+                setTimeout(() => {
+                    video.status = 'completed';
+                    const result = {
+                        videoId: video.id,
+                        thumbnails: [
+                            'https://via.placeholder.com/80x60/667eea/ffffff?text=T1',
+                            'https://via.placeholder.com/80x60/764ba2/ffffff?text=T2',
+                            'https://via.placeholder.com/80x60/667eea/ffffff?text=T3'
+                        ],
+                        duration: Math.random() * 300 + 60,
+                        metadata: {
+                            width: 1920,
+                            height: 1080,
+                            fps: 30,
+                            bitrate: 5000000,
+                            codec: 'h264'
+                        },
+                        processedAt: new Date()
+                    };
+                    this.processingResults.push(result);
+                    this.updateResults();
+                    this.updateStats();
+                }, Math.random() * 3000 + 2000); // 2-5秒
+            }
+
+            updateStats() {
+                const stats = {
+                    total: this.videos.length,
+                    pending: this.videos.filter(v => v.status === 'pending').length,
+                    uploading: this.videos.filter(v => v.status === 'uploading').length,
+                    processing: this.videos.filter(v => v.status === 'processing').length,
+                    completed: this.videos.filter(v => v.status === 'completed').length,
+                    errors: this.videos.filter(v => v.status === 'error').length
+                };
+
+                document.getElementById('stats').innerHTML = `
+                    <div class="stat-item">总计: ${stats.total}</div>
+                    <div class="stat-item">等待中: ${stats.pending}</div>
+                    <div class="stat-item">上传中: ${stats.uploading}</div>
+                    <div class="stat-item">处理中: ${stats.processing}</div>
+                    <div class="stat-item">已完成: ${stats.completed}</div>
+                    <div class="stat-item">错误: ${stats.errors}</div>
+                `;
+            }
+
+            updateProgress() {
+                const progressContainer = document.getElementById('progress-container');
+                const progressList = Array.from(this.uploadProgress.values());
+                
+                if (progressList.length === 0) {
+                    progressContainer.innerHTML = `
+                        <p style="color: #666; text-align: center; padding: 20px;">
+                            <i class="fas fa-info-circle"></i> 选择视频文件开始上传
+                        </p>
+                    `;
+                    return;
+                }
+
+                progressContainer.innerHTML = progressList.map(progress => `
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <i class="fas fa-video"></i> 视频 ${progress.videoId}
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress.progress}%"></div>
+                        </div>
+                        <div class="progress-info">
+                            <i class="fas fa-percentage"></i> ${progress.progress}% - 
+                            <i class="fas fa-tachometer-alt"></i> ${progress.speed.toFixed(2)} MB/s - 
+                            <i class="fas fa-clock"></i> 剩余 ${this.formatTime(progress.remainingTime)}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateResults() {
+                const resultsContainer = document.getElementById('results-container');
+                
+                if (this.processingResults.length === 0) {
+                    resultsContainer.innerHTML = `
+                        <p style="color: #666; text-align: center; padding: 20px;">
+                            <i class="fas fa-hourglass-half"></i> 等待视频处理完成
+                        </p>
+                    `;
+                    return;
+                }
+
+                resultsContainer.innerHTML = this.processingResults.map(result => `
+                    <div class="result-item">
+                        <h3><i class="fas fa-video"></i> 视频 ${result.videoId}</h3>
+                        <p><i class="fas fa-clock"></i> 时长: ${this.formatDuration(result.duration)}</p>
+                        <p><i class="fas fa-expand-arrows-alt"></i> 分辨率: ${result.metadata.width}x${result.metadata.height}</p>
+                        <p><i class="fas fa-film"></i> 帧率: ${result.metadata.fps}fps</p>
+                        <div class="thumbnails">
+                            ${result.thumbnails.map(thumb => `<img src="${thumb}" alt="缩略图">`).join('')}
+                        </div>
+                        <p><i class="fas fa-calendar-alt"></i> 处理时间: ${result.processedAt.toLocaleString()}</p>
+                    </div>
+                `).join('');
+            }
+
+            formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            formatDuration(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            generateId() {
+                return Math.random().toString(36).substr(2, 9);
+            }
+        }
+
+        // 初始化演示
+        const videoService = new DemoVideoService();
+
+        // 设置拖拽上传
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                videoService.addVideos(files);
+            }
+        });
+
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                videoService.addVideos(files);
+            }
+        });
+
+        // 添加一些演示数据
+        setTimeout(() => {
+            // 模拟一些文件被添加
+            const demoFiles = [
+                { name: 'demo_video_1.mp4', size: 50 * 1024 * 1024 },
+                { name: 'demo_video_2.mp4', size: 30 * 1024 * 1024 }
+            ];
+            
+            console.log('🎬 演示：自动添加示例视频文件');
+            videoService.addVideos(demoFiles);
+        }, 2000);
+    </script>
+</body>
+</html>
