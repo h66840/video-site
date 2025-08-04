@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夏季促销活动 - 最终版本</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1);
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 50px 0;
+        }
+        .header h1 {
+            font-size: 3.5em;
+            margin: 0;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+        }
+        .promotion-content {
+            background: rgba(255,255,255,0.15);
+            border-radius: 20px;
+            padding: 50px;
+            margin: 30px 0;
+            backdrop-filter: blur(15px);
+        }
+        .discount-badge {
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.8em;
+            font-weight: bold;
+            display: inline-block;
+            margin: 20px 0;
+        }
+        .cta-button {
+            background: linear-gradient(45deg, #2ed573, #26d0ce);
+            color: white;
+            padding: 18px 45px;
+            border: none;
+            border-radius: 35px;
+            font-size: 1.3em;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 20px 15px;
+        }
+        .countdown {
+            text-align: center;
+            font-size: 2.5em;
+            margin: 40px 0;
+            color: #ffa502;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌞 夏季超级促销 🌞</h1>
+            <p style="font-size: 1.3em;">限时优惠，错过再等一年！</p>
+        </div>
+        
+        <div class="promotion-content">
+            <div class="discount-badge">
+                🔥 全场最高7折优惠 🔥
+            </div>
+            
+            <h2>🎉 活动详情</h2>
+            <ul style="font-size: 1.2em;">
+                <li>✨ 精选商品低至3折起</li>
+                <li>🎁 满299元免费送货</li>
+                <li>💎 VIP会员额外9折优惠</li>
+                <li>🏆 新用户注册立享200元优惠券</li>
+                <li>📱 手机端专享额外优惠</li>
+            </ul>
+            
+            <div class="countdown" id="countdown">
+                ⏰ 活动倒计时：计算中...
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="#" class="cta-button">🛒 立即抢购</a>
+                <a href="#" class="cta-button">📱 下载APP</a>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 50px;">
+            <p>📞 客服热线：400-123-4567</p>
+        </div>
+    </div>
+    
+    <script>
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const endDate = new Date(now + 7 * 24 * 60 * 60 * 1000).getTime();
+            const distance = endDate - now;
+            
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            
+            document.getElementById('countdown').innerHTML = 
+                `⏰ 活动倒计时：${days}天 ${hours}小时 ${minutes}分钟`;
+        }
+        
+        setInterval(updateCountdown, 60000);
+        updateCountdown();
+    </script>
+</body>
+</html>
