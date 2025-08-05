@@ -1,0 +1,100 @@
+name: Cross-Repository Deployment Notification
+
+# 触发条件：当主分支有新的push时
+on:
+  push:
+    branches: [ main, master ]
+
+# 设置工作流权限
+permissions:
+  contents: read
+
+jobs:
+  create-deployment-issue:
+    runs-on: ubuntu-latest
+    name: Create Deployment Notification Issue
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Get commit information
+      id: commit-info
+      run: |
+        echo "commit_sha=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+        echo "commit_message=$(git log -1 --pretty=%B)" >> $GITHUB_OUTPUT
+        echo "commit_author=$(git log -1 --pretty=%an)" >> $GITHUB_OUTPUT
+        echo "commit_date=$(git log -1 --pretty=%ci)" >> $GITHUB_OUTPUT
+        echo "repo_name=${GITHUB_REPOSITORY}" >> $GITHUB_OUTPUT
+        
+    - name: Create deployment notification issue
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.CROSS_REPO_TOKEN }}
+        script: |
+          const issueTitle = `🚀 Deployment Notification from ${context.repo.repo}`;
+          const issueBody = `
+          ## 部署通知 / Deployment Notification
+          
+          **源仓库 / Source Repository:** \`${{ steps.commit-info.outputs.repo_name }}\`
+          
+          **触发事件 / Trigger Event:** 新的commit推送到主分支
+          
+          ### 📋 Commit详情 / Commit Details
+          - **Commit SHA:** \`${{ steps.commit-info.outputs.commit_sha }}\`
+          - **提交信息 / Commit Message:** ${{ steps.commit-info.outputs.commit_message }}
+          - **提交作者 / Author:** ${{ steps.commit-info.outputs.commit_author }}
+          - **提交时间 / Date:** ${{ steps.commit-info.outputs.commit_date }}
+          
+          ### 🔗 相关链接 / Related Links
+          - [查看Commit / View Commit](https://github.com/${{ steps.commit-info.outputs.repo_name }}/commit/${{ steps.commit-info.outputs.commit_sha }})
+          - [源仓库 / Source Repository](https://github.com/${{ steps.commit-info.outputs.repo_name }})
+          
+          ### ⚡ 自动化信息 / Automation Info
+          - **工作流 / Workflow:** \`${{ github.workflow }}\`
+          - **运行ID / Run ID:** \`${{ github.run_id }}\`
+          - **触发时间 / Triggered At:** \`${{ github.event.head_commit.timestamp }}\`
+          
+          ---
+          
+          > 🤖 此issue由GitHub Actions自动创建
+          > 🤖 This issue was automatically created by GitHub Actions
+          
+          **下一步操作建议 / Suggested Next Steps:**
+          - [ ] 检查部署状态
+          - [ ] 验证功能正常
+          - [ ] 更新相关文档
+          - [ ] 通知相关团队成员
+          `;
+          
+          try {
+            const response = await github.rest.issues.create({
+              owner: 'h66840',
+              repo: 'my-new-proj',
+              title: issueTitle,
+              body: issueBody,
+              labels: ['deployment', 'automation', 'notification']
+            });
+            
+            console.log(\`✅ Successfully created issue #\${response.data.number}\`);
+            console.log(\`🔗 Issue URL: \${response.data.html_url}\`);
+            
+            // 设置输出变量供后续步骤使用
+            core.setOutput('issue-number', response.data.number);
+            core.setOutput('issue-url', response.data.html_url);
+            
+          } catch (error) {
+            console.error('❌ Failed to create issue:', error);
+            core.setFailed(\`Failed to create deployment notification issue: \${error.message}\`);
+          }
+          
+    - name: Summary
+      run: |
+        echo "## 🎉 部署通知已创建 / Deployment Notification Created" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**源仓库 / Source Repository:** \`${{ steps.commit-info.outputs.repo_name }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Commit SHA:** \`${{ steps.commit-info.outputs.commit_sha }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**提交信息 / Commit Message:** ${{ steps.commit-info.outputs.commit_message }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ 已在 \`h66840/my-new-proj\` 仓库中创建部署通知issue" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Deployment notification issue created in \`h66840/my-new-proj\` repository" >> $GITHUB_STEP_SUMMARY
