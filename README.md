@@ -1,79 +1,90 @@
 # Video Site
 
-一个视频网站项目，提供视频内容的展示和管理功能。
+A modern video streaming platform with DApp integration.
 
-## 项目简介
+## Features
 
-本项目是一个现代化的视频网站，支持视频上传、播放、搜索和用户管理等功能。
+- Video streaming and management
+- User authentication and profiles
+- DApp integration for blockchain features
+- Real-time comments and interactions
 
-## 数据源说明
+## Database Functions
 
-### 新增数据源 (2025-08-03)
+### User Management
 
-本项目现已集成以下数据源：
+#### `get_user_id_by_email(p_email VARCHAR(255))`
 
-1. **本地视频存储**
-   - 支持多种视频格式 (MP4, AVI, MOV, WMV)
-   - 自动视频转码和优化
-   - 缩略图自动生成
+**Purpose**: Retrieves a user's account ID by their email address for DApp user system integration.
 
-2. **第三方API集成**
-   - YouTube API v3 集成
-   - Vimeo API 支持
-   - 支持外部视频链接嵌入
+**Parameters**:
+- `p_email` (VARCHAR(255)): The email address to search for
 
-3. **数据库存储**
-   - 视频元数据存储
-   - 用户信息管理
-   - 播放历史记录
-   - 评论和评分系统
+**Returns**: 
+- `INTEGER`: The user ID if found, or `NULL` if no user exists with the given email
 
-4. **CDN内容分发**
-   - 全球CDN加速
-   - 智能缓存策略
-   - 带宽优化
+**Usage Example**:
+```sql
+-- Get user ID for a specific email
+SELECT get_user_id_by_email('alice@example.com');
+-- Returns: 1 (if user exists) or NULL (if not found)
 
-5. **实时流媒体数据源** *(新增 - 2025-08-03)*
-   - 支持RTMP/RTSP协议接入
-   - 实时直播流处理
-   - 多码率自适应推流
-   - WebRTC低延迟传输
-   - 直播录制和回放功能
-
-6. **AI智能分析数据源** *(新增 - 2025-08-03)*
-   - 视频内容智能标签生成
-   - 自动字幕识别和生成
-   - 视频质量评估
-   - 内容推荐算法优化
-   - 用户行为分析数据
-
-## 技术栈
-
-- 前端：React.js, HTML5 Video API
-- 后端：Node.js, Express
-- 数据库：MongoDB
-- 存储：AWS S3 / 本地存储
-- CDN：CloudFlare
-- 流媒体：FFmpeg, WebRTC
-- AI分析：TensorFlow.js, OpenAI API
-
-## 安装和使用
-
-```bash
-# 克隆项目
-git clone https://github.com/h66840/video-site.git
-
-# 安装依赖
-npm install
-
-# 启动开发服务器
-npm start
+-- Use in application queries
+SELECT u.username, u.created_at 
+FROM users u 
+WHERE u.user_id = get_user_id_by_email('bob@dapp.io');
 ```
 
-## 贡献
+**Implementation Details**:
+- Function uses a simple SELECT query with LIMIT 1 for optimal performance
+- Email lookup is case-sensitive
+- Returns immediately upon finding a match
+- Safe to use in concurrent environments
 
-欢迎提交 Pull Request 和 Issue。
+## Installation
 
-## 许可证
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up the database with required tables and functions
+4. Configure environment variables
+5. Run the application: `npm start`
+
+## Database Setup
+
+The application requires a PostgreSQL database with the following tables:
+- `users`: Stores user account information including email and user ID
+
+Run the following SQL to create the user lookup function:
+
+```sql
+CREATE OR REPLACE FUNCTION get_user_id_by_email(p_email VARCHAR(255))
+RETURNS INTEGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN (
+        SELECT user_id 
+        FROM users 
+        WHERE email = p_email
+        LIMIT 1
+    );
+END;
+$$;
+```
+
+## API Endpoints
+
+- `/api/users` - User management
+- `/api/videos` - Video operations
+- `/api/auth` - Authentication
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch from `dev`
+3. Make your changes
+4. Submit a pull request
+
+## License
 
 MIT License
