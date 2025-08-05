@@ -1,95 +1,128 @@
-# video-site
+# Video Site - 大模型应用项目视频展示
 
-一个视频网站项目
+这是一个展示大模型应用项目的视频网站，包含多个视频处理和展示功能。
 
-## 项目简介
+## 项目概述
 
-这是一个基于现代Web技术构建的视频网站项目，提供视频播放、用户管理、内容管理等功能。
+本项目是刘昊雨的大模型应用项目视频展示平台，提供了丰富的视频处理和展示功能。
 
-## P300 Speller 脑机接口范式演示
+## 主要功能
 
-### 什么是P300 Speller？
+### 1. 视频处理
+- 批量视频处理 (`main_batch.py`)
+- 简单视频处理库 (`main_simple_lib.py`)
+- 图像补丁处理 (`image_patch.py`)
 
-P300 Speller是一种基于事件相关电位（Event-Related Potential, ERP）的脑机接口（Brain-Computer Interface, BCI）系统。它利用大脑对目标刺激产生的P300成分来实现文字输入和交流功能。
+### 2. 响应式视频处理
+- 响应式视频处理器 (`reactive_video_processor.py`)
+- 前端TypeScript支持 (`reactive_video_frontend.ts`)
+- 响应式演示页面 (`reactive_demo.html`)
 
-### 技术原理
+### 3. 实时视频流API端点 🆕
 
-- **P300成分**：当用户注意到目标刺激时，大脑会在刺激后约300毫秒产生一个正向电位波动
-- **矩阵范式**：通过字母矩阵的行列闪烁，用户专注于目标字母时会产生特征性的P300信号
-- **信号识别**：系统通过脑电图（EEG）采集和机器学习算法识别P300信号，从而确定用户选择的字母
+我们新增了一个强大的实时视频流API端点，支持多种视频流操作：
 
-### 应用场景
+#### API端点列表
 
-- **辅助交流**：为运动神经元疾病（ALS）、脊髓损伤等患者提供交流手段
-- **康复训练**：作为神经康复的训练工具
-- **研究应用**：用于认知神经科学和BCI技术研究
+| 方法 | 端点 | 描述 |
+|------|------|------|
+| POST | `/api/v1/stream/start` | 启动新的视频流 |
+| GET | `/api/v1/stream/{stream_id}` | 获取实时视频流数据 |
+| POST | `/api/v1/stream/{stream_id}/stop` | 停止指定的视频流 |
+| GET | `/api/v1/streams` | 列出所有活跃的视频流 |
+| GET | `/api/v1/stream/{stream_id}/info` | 获取特定流的详细信息 |
 
-### 项目视频演示
+#### 使用示例
 
-本项目包含了P300 Speller系统的演示视频（1.mp4 - 5.mp4），展示了：
-- 系统界面和操作流程
-- 实时脑电信号采集
-- P300信号识别过程
-- 字母选择和文字输入效果
+**启动视频流：**
+```bash
+curl -X POST http://localhost:5000/api/v1/stream/start \
+  -H "Content-Type: application/json" \
+  -d '{"stream_id": "my_stream_001", "source": "camera_1"}'
+```
 
-## 功能特性
+**获取视频流：**
+```bash
+curl http://localhost:5000/api/v1/stream/my_stream_001
+```
 
-- 视频播放功能
-- 用户注册和登录
-- 视频上传和管理
-- 响应式设计
-- P300 BCI演示视频展示
+**停止视频流：**
+```bash
+curl -X POST http://localhost:5000/api/v1/stream/my_stream_001/stop
+```
 
-## 数据来源
+#### 技术特性
 
-本项目的数据来源包括：
+- **实时传输**: 使用Server-Sent Events (SSE)协议
+- **多流支持**: 同时支持多个并发视频流
+- **线程安全**: 完全的线程安全流管理
+- **RESTful设计**: 标准的REST API设计模式
+- **状态监控**: 实时流状态和性能监控
 
-### 视频内容
-- 用户上传的原创视频内容
-- 经过授权的第三方视频资源
-- 公开可用的视频素材库
-- P300 Speller系统演示录像
+#### 响应格式
 
-### 用户数据
-- 用户注册时提供的基本信息
-- 用户行为数据（观看历史、偏好设置等）
-- 用户生成的内容（评论、评分等）
+所有API响应均为JSON格式：
 
-### 系统数据
-- 视频元数据（标题、描述、标签等）
-- 系统日志和分析数据
-- 性能监控数据
+```json
+{
+  "message": "Stream started successfully",
+  "stream_id": "my_stream_001",
+  "stream_url": "/api/v1/stream/my_stream_001"
+}
+```
 
-### 数据处理说明
-- 所有用户数据均按照隐私政策进行处理
-- 视频内容经过格式转换和质量优化
-- 数据存储采用安全加密措施
+## 文件结构
 
-## 技术栈
-
-- 前端：HTML5, CSS3, JavaScript
-- 后端：Node.js
-- 数据库：MongoDB
-- 视频处理：FFmpeg
-- BCI相关：Python, EEG信号处理库
+```
+video-site/
+├── main_batch.py              # 批量视频处理
+├── main_simple_lib.py         # 简单视频处理库
+├── image_patch.py             # 图像补丁处理
+├── reactive_video_processor.py # 响应式视频处理器
+├── reactive_video_frontend.ts  # 前端TypeScript支持
+├── reactive_demo.html         # 响应式演示页面
+├── streaming_api.py           # 实时视频流API端点 🆕
+├── requirements.txt           # Python依赖
+├── setup.sh                   # 安装脚本
+└── README.md                  # 项目文档
+```
 
 ## 安装和运行
 
+### 环境设置
 ```bash
-# 克隆项目
-git clone https://github.com/h66840/video-site.git
-
-# 安装依赖
-npm install
-
-# 启动项目
-npm start
+chmod +x setup.sh
+./setup.sh
 ```
 
-## 贡献指南
+### 安装依赖
+```bash
+pip install -r requirements.txt
+```
 
-欢迎提交Issue和Pull Request来改进项目。
+### 启动实时视频流服务
+```bash
+python streaming_api.py
+```
+
+服务将在 `http://localhost:5000` 启动。
+
+## 演示页面
+
+- **响应式演示**: `reactive_demo.html`
+- **夏季促销页面**: `summer-promotion-final.html`
+- **Vision Pro发布页面**: `visionpro-launch.html`
+
+## 开发者信息
+
+**作者**: 刘昊雨  
+**项目**: 大模型应用项目视频展示  
+**网站**: https://h66840.github.io/video-site/
 
 ## 许可证
 
-MIT License
+本项目遵循开源许可证。
+
+---
+
+*最后更新: 2025年8月*
